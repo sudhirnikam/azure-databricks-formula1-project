@@ -87,7 +87,7 @@ constructor_final_df = constructor_dropped_df.withColumnRenamed("constructorId",
 
 constructor_final_df.write \
     .mode("overwrite") \
-    .format("parquet") \
+    .format("delta") \
     .option("path", f"{processed_folder_path}/constructors") \
     .saveAsTable("f1_processed.constructors")
 

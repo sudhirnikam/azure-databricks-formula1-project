@@ -50,3 +50,22 @@ def df_column_to_list(input_df, column_name):
   
   column_value_list = [row[column_name] for row in df_row_list]
   return column_value_list
+
+# COMMAND ----------
+
+def merge_delta_data(input_df, db_name, table_name, folder_path, merge_condition, partition_column):
+  spark.conf.set("spark.databricks.optimizer.dynamicPartitionPruning","true")
+
+  from delta.tables import DeltaTable
+  
+  if is_table_exists(db_name, table_name):
+    # deltaTable = DeltaTable.forPath(spark, f"{folder_path}/{table_name}")
+    deltaTable = DeltaTable.forName(spark, f"{db_name}.{table_name}")
+    deltaTable.alias("tgt").merge(
+        input_df.alias("src"),
+        merge_condition) \
+      .whenMatchedUpdateAll()\
+      .whenNotMatchedInsertAll()\
+      .execute()
+  else:
+    input_df.write.mode("overwrite").partitionBy(partition_column).format("delta").option("path", f"{folder_path}/{table_name}").saveAsTable(f"{db_name}.{table_name}")

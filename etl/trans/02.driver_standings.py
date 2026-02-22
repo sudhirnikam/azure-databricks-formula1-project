@@ -29,7 +29,7 @@ spark.conf.set("fs.azure.account.oauth2.client.endpoint.formula1dls7.dfs.core.wi
 
 # COMMAND ----------
 
-race_results_df = spark.read.parquet(f"{presentation_folder_path}/race_results") \
+race_results_df = spark.read.format("delta").load(f"{presentation_folder_path}/race_results") \
 .filter(f"file_date = '{v_file_date}'") 
 
 print(race_results_df.count())
@@ -43,7 +43,7 @@ race_year_list = df_column_to_list(race_results_df, 'race_year')
 
 from pyspark.sql.functions import col
 
-race_results_df = spark.read.parquet(f"{presentation_folder_path}/race_results") \
+race_results_df = spark.read.format("delta").load(f"{presentation_folder_path}/race_results") \
 .filter(col("race_year").isin(race_year_list))
 
 print(race_results_df.count())
@@ -80,7 +80,12 @@ print(final_df.count())
 
 # COMMAND ----------
 
-overwrite_partition(final_df, 'f1_presentation', 'driver_standings', 'race_year', presentation_folder_path)
+# overwrite_partition(final_df, 'f1_presentation', 'driver_standings', 'race_year', presentation_folder_path)
+
+# COMMAND ----------
+
+merge_condition = "tgt.driver_name = src.driver_name AND tgt.race_year = src.race_year"
+merge_delta_data(final_df, 'f1_presentation', 'driver_standings', presentation_folder_path, merge_condition, 'race_year')
 
 # COMMAND ----------
 

@@ -97,7 +97,12 @@ final_df = lap_times_df.withColumnRenamed("driverId", "driver_id") \
 
 # COMMAND ----------
 
-overwrite_partition(final_df, 'f1_processed', 'lap_times', 'race_id', processed_folder_path)
+# overwrite_partition(final_df, 'f1_processed', 'lap_times', 'race_id', processed_folder_path)
+
+# COMMAND ----------
+
+merge_condition = "tgt.race_id = src.race_id AND tgt.driver_id = src.driver_id AND tgt.lap = src.lap"
+merge_delta_data(final_df, 'f1_processed', 'lap_times', processed_folder_path, merge_condition, 'race_id')
 
 # COMMAND ----------
 

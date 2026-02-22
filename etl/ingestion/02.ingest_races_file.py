@@ -117,7 +117,7 @@ races_selected_df.show(10, False)
 races_selected_df.write \
     .mode("overwrite") \
     .partitionBy('race_year') \
-    .format("parquet") \
+    .format("delta") \
     .option("path", f"{processed_folder_path}/races") \
     .saveAsTable("f1_processed.races")
 
