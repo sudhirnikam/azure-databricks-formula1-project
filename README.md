@@ -149,6 +149,24 @@ The transformation notebooks in `etl/trans/` join the processed tables and produ
 
 ---
 
+## Orchestration
+
+The pipeline is orchestrated using **Azure Data Factory** with two pipelines that trigger Databricks notebooks via a linked service:
+
+- **`pl_ingest_formula1_data`** — triggers all ingestion notebooks sequentially, passing the `file_date` parameter for incremental load targeting.
+- **`pl_transform_formula1_data`** — runs the transformation notebooks in dependency order (race results → driver standings → constructor standings).
+
+Both pipelines are scheduled and can be triggered manually or on a recurring basis.
+
+### ADF Pipeline Run
+
+![ADF processed layer pipeline run](docs/screenshots/adf_processed_layer_pipeline_run.png)
+
+![ADF presentation layer pipeline run](docs/screenshots/adf_presentation_layer_pipeline_run.png)
+
+![ADF end-to-end pipeline run](docs/screenshots/adf_end_to_end_pipeline_run.png)
+---
+
 ## Incremental Load Support
 
 The pipeline supports **incremental loading** using a `file_date` partition column. Instead of reprocessing all historical data on every run, each pipeline execution only processes the new batch of files identified by date. The `ddl/prepare_for_incremental.py` script handles the initial database setup for this pattern.
@@ -191,6 +209,26 @@ The `analytics/` folder contains Spark SQL queries used to derive insights from 
 7. Query the `f1_presentation` database for analytics.
 
 For incremental loads, run `ddl/prepare_for_incremental.py` first to set up the database structure, then use the dated snapshots in `data/Incremental_load_data/` to simulate new data arrivals.
+
+---
+
+## Sample Output
+
+### Processed Layer Record Count (Databricks)
+
+![Ingestion job output](docs/screenshots/f1_processed_record_count.png)
+
+### Presentation Layer Record Count (Databricks)
+
+![Ingestion job output](docs/screenshots/f1_presentation_record_count.png)
+
+### Driver standings (presentation layer)
+
+![Driver standings output](docs/screenshots/driver_standings_output.png)
+
+### Dominant drivers analytics
+
+![Dominant drivers analytics](docs/screenshots/dominant_drivers_analytics.png)
 
 ---
 
