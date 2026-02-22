@@ -116,7 +116,7 @@ circuits_final_df.write \
 # COMMAND ----------
 
 # DBTITLE 1,Cell 12
-display(spark.read.delta(f"{processed_folder_path}/circuits"))
+# display(spark.read.delta(f"{processed_folder_path}/circuits"))
 
 # COMMAND ----------
 
