@@ -6,7 +6,7 @@ An end-to-end data engineering project that ingests Formula 1 race data, process
 
 ## What This Project Does
 
-Formula 1 produces a rich dataset of races, drivers, constructors, lap times, pit stops, and qualifying sessions going back decades. This project pulls that data from the [Ergast Motor Racing API](http://ergast.com/mrd/) and builds a complete analytics pipeline on Azure, transforming raw JSON and CSV files into clean, queryable tables that answer questions like:
+Formula 1 produces a rich dataset of races, drivers, constructors, lap times, pit stops, and qualifying sessions going back decades. This project uses a data extract originally sourced from the Ergast Motor Racing dataset and builds a complete analytics pipeline on Azure, transforming raw JSON and CSV files into clean, queryable tables that answer questions like:
 
 - Who are the most dominant drivers of all time (and by decade)?
 - Which constructors have been most consistently competitive?
@@ -19,7 +19,7 @@ The pipeline follows a **medallion architecture** — raw data lands in a raw zo
 ## Architecture Overview
 
 ```
-Ergast API (raw JSON/CSV)
+Ergast Data Extract (raw JSON/CSV)
         │
         ▼
 ┌─────────────────┐
@@ -57,13 +57,15 @@ Ergast API (raw JSON/CSV)
 | Orchestration | Azure Data Factory (ADF) |
 | Secrets management | Azure Key Vault + Databricks Secret Scopes |
 | Authentication | Azure Service Principal (OAuth 2.0) |
-| Data source | [Ergast Formula 1 API](http://ergast.com/mrd/) |
+| Data source | Ergast Formula 1 data extract (CSV + JSON) |
 
 ---
 
 ## Data Source
 
-All Formula 1 data is sourced from the **[Ergast Motor Racing Developer API](http://ergast.com/mrd/)** — a free, community-maintained API that provides historical F1 data from 1950 to the present. It covers circuits, races, drivers, constructors, results, lap times, pit stops, and qualifying sessions, all available in JSON and XML formats.
+All Formula 1 data comes from a static extract of the **Ergast Motor Racing dataset** — a community-maintained dataset covering historical F1 data from 1950 to the present. It includes circuits, races, drivers, constructors, results, lap times, pit stops, and qualifying sessions in CSV and JSON formats.
+
+> **Note:** The Ergast API (http://ergast.com/mrd/) is no longer operational. The raw data files used in this project are based on an extract taken from the Ergast dataset while it was still available, and are included directly in the `data/` directory.
 
 Sample data files for testing (full load and incremental snapshots) are included under the `data/` directory.
 
@@ -194,4 +196,4 @@ For incremental loads, run `ddl/prepare_for_incremental.py` first to set up the 
 
 ## Acknowledgements
 
-Race data is provided by the [Ergast Motor Racing Developer API](http://ergast.com/mrd/), a free and open API for Formula 1 historical data. Big thanks to the maintainers for keeping it running over the years.
+Race data is based on the Ergast Motor Racing dataset, a free and open Formula 1 historical dataset that covered races from 1950 onwards. The Ergast API is no longer operational, but the dataset itself lives on through community extracts and mirrors. Thanks to the original maintainers for their work over the years.
