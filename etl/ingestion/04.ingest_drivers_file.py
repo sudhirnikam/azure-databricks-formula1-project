@@ -110,7 +110,7 @@ drivers_final_df = drivers_with_columns_df.drop(col("url"))
 
 drivers_final_df.write \
     .mode("overwrite") \
-    .format("parquet") \
+    .format("delta") \
     .option("path", f"{processed_folder_path}/drivers") \
     .saveAsTable("f1_processed.drivers")
 

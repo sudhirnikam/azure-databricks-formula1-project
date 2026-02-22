@@ -101,7 +101,12 @@ final_df = qualifying_df.withColumnRenamed("qualifyId", "qualify_id") \
 
 # COMMAND ----------
 
-overwrite_partition(final_df, 'f1_processed', 'qualifying', 'race_id', processed_folder_path)
+# overwrite_partition(final_df, 'f1_processed', 'qualifying', 'race_id', processed_folder_path)
+
+# COMMAND ----------
+
+merge_condition = "tgt.qualify_id = src.qualify_id AND tgt.race_id = src.race_id"
+merge_delta_data(final_df, 'f1_processed', 'qualifying', processed_folder_path, merge_condition, 'race_id')
 
 # COMMAND ----------
 
@@ -110,7 +115,7 @@ overwrite_partition(final_df, 'f1_processed', 'qualifying', 'race_id', processed
 
 # COMMAND ----------
 
-display(spark.read.parquet('abfss://processed@formula1dls7.dfs.core.windows.net/qualifying'))
+display(spark.read.format('delta').load('abfss://processed@formula1dls7.dfs.core.windows.net/qualifying'))
 
 # COMMAND ----------
 
