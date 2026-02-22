@@ -98,10 +98,15 @@ azure-databricks-formula1-project/
 │   └── trans/
 │       ├── 01.race_results.py              # Joins all tables into a unified race results view
 │       ├── 02.driver_standings.py          # Driver championship standings by year
-│       └── 03.constructor_standings.py     # Constructor standings by year
+│       ├── 03.constructor_standings.py     # Constructor standings by year
+│       ├── 04.calculated_race_results.py   # MERGE-based upsert into calculated_race_results (Delta)
+│       └── 4.calculated_race_results.sql   # SQL equivalent of the calculated race results logic
 │
 ├── ddl/
-│   └── prepare_for_incremental.py  # Drops/recreates databases for incremental load setup
+│   ├── 01.create_raw_tables.sql            # Creates f1_raw external tables over ADLS raw files
+│   ├── 02.create_processed_database.sql    # Creates f1_processed external tables
+│   ├── 03.create_presentation_database.sql # Creates f1_presentation external tables
+│   └── 04.prepare_for_incremental.py       # Drops/recreates databases for incremental load setup
 │
 ├── analytics/
 │   ├── 01.find_dominant_drivers.sql
@@ -110,7 +115,8 @@ azure-databricks-formula1-project/
 │   └── 04.viz_dominant_teams.sql
 │
 ├── demo/
-│   └── 06.sql_objects_demo.py      # Delta Lake table creation demos
+│   ├── 06.sql_objects_demo.py      # Delta Lake SQL objects demo (views, temp views, DDL)
+│   └── 10.delta_lake_demo.py       # Delta Lake read/write demos (managed vs external tables)
 │
 └── data/
     ├── full_load_data/             # Complete F1 dataset (circuits, races, drivers, etc.)
@@ -143,9 +149,10 @@ Each ingestion notebook reads raw files from the ADLS raw container, enforces an
 
 The transformation notebooks in `etl/trans/` join the processed tables and produce aggregated, analytics-ready datasets in the `f1_presentation` database.
 
-- **`race_results.py`** — Joins circuits, races, drivers, constructors, results, pit stops, and lap times into a single denormalised race results table.
-- **`driver_standings.py`** — Aggregates race results to compute driver championship standings per season, including total points and race wins.
-- **`constructor_standings.py`** — Same as above but grouped by constructor (team).
+- **`01.race_results.py`** — Joins circuits, races, drivers, constructors, results, pit stops, and lap times into a single denormalised race results table.
+- **`02.driver_standings.py`** — Aggregates race results to compute driver championship standings per season, including total points and race wins.
+- **`03.constructor_standings.py`** — Same as above but grouped by constructor (team).
+- **`04.calculated_race_results.py`** — Uses a Delta Lake MERGE (upsert) to incrementally build `f1_presentation.calculated_race_results`, scoring only the top-10 finishers per race.
 
 ---
 
@@ -165,6 +172,7 @@ Both pipelines are scheduled and can be triggered manually or on a recurring bas
 ![ADF presentation layer pipeline run](docs/screenshots/adf_presentation_layer_pipeline_run.png)
 
 ![ADF end-to-end pipeline run](docs/screenshots/adf_end_to_end_pipeline_run.png)
+
 ---
 
 ## Incremental Load Support
@@ -205,10 +213,10 @@ The `analytics/` folder contains Spark SQL queries used to derive insights from 
 3. Run the appropriate setup notebook from `setup/` to configure ADLS connectivity.
 4. Upload the raw data files from `data/full_load_data/` to your ADLS raw container.
 5. Run `etl/ingestion/00.ingest_all_files.py` to trigger the full ingestion pipeline.
-6. Run the transformation notebooks in `etl/trans/` in order (01 → 02 → 03).
+6. Run the transformation notebooks in `etl/trans/` in order (01 → 02 → 03 → 04).
 7. Query the `f1_presentation` database for analytics.
 
-For incremental loads, run `ddl/prepare_for_incremental.py` first to set up the database structure, then use the dated snapshots in `data/Incremental_load_data/` to simulate new data arrivals.
+For incremental loads, run `ddl/04.prepare_for_incremental.py` first to set up the database structure, then use the dated snapshots in `data/Incremental_load_data/` to simulate new data arrivals.
 
 ---
 
@@ -216,11 +224,11 @@ For incremental loads, run `ddl/prepare_for_incremental.py` first to set up the 
 
 ### Processed Layer Record Count (Databricks)
 
-![Ingestion job output](docs/screenshots/f1_processed_record_count.png)
+![Processed layer record count](docs/screenshots/f1_processed_record_count.png)
 
 ### Presentation Layer Record Count (Databricks)
 
-![Ingestion job output](docs/screenshots/f1_presentation_record_count.png)
+![Presentation layer record count](docs/screenshots/f1_presentation_record_count.png)
 
 ### Driver standings (presentation layer)
 
